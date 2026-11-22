@@ -31,6 +31,7 @@ export default function App() {
   const socketRef = useRef(null)
   const blockedRef = useRef([])
   const [pollingFallback, setPollingFallback] = useState(false)
+  const [isPollingLive, setIsPollingLive] = useState(false)
 
   useEffect(() => {
     const bootTimer = window.setTimeout(() => setBooting(false), 650)
@@ -74,6 +75,8 @@ export default function App() {
         const response = await fetch(`${API}/api/tick`)
         if (!response.ok) throw new Error(`Tick request failed: ${response.status}`)
         const data = await response.json()
+        setIsPollingLive(true)
+        setSocketStatus('Connected')
         setIsStreaming(data?.is_streaming !== false)
         const incoming = Array.isArray(data?.alerts) ? data.alerts : []
         incoming.forEach((alert) => {
@@ -98,6 +101,8 @@ export default function App() {
         }
         setLoading(false)
       } catch (error) {
+        setIsPollingLive(false)
+        setSocketStatus('Reconnecting')
         console.error(error)
       }
     }
@@ -121,15 +126,18 @@ export default function App() {
         socketRef.current = socket
         socket.onopen = () => {
           setSocketStatus('Connected')
+          setIsPollingLive(false)
           if (!import.meta.env.PROD) setPollingFallback(false)
         }
         socket.onclose = () => {
           setSocketStatus('Reconnecting')
           setPollingFallback(true)
+          setIsPollingLive(false)
           if (!stopped) reconnectId = window.setTimeout(connect, 2500)
         }
         socket.onerror = () => {
           setPollingFallback(true)
+          setIsPollingLive(false)
           socket.close()
         }
         socket.onmessage = (event) => {
@@ -217,7 +225,7 @@ export default function App() {
       <div className="sticky top-0 z-40 px-3 pt-3 md:px-6 md:pt-4">
         <FloatingHeader status={socketStatus} isStreaming={isStreaming} activeView={activeView}
           setActiveView={setActiveView} blockedCount={blockedIps.length} onToggle={toggleStream}
-          sourceMode={sourceMode} />
+          sourceMode={sourceMode} isPollingLive={isPollingLive} />
       </div>
       <div className="mx-auto max-w-[1240px] px-4 pb-10 md:px-6">
         {activeView === 'Live Triage' && <>

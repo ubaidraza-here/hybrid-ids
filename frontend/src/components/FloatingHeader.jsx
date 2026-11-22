@@ -13,12 +13,15 @@ const attacks = [
   ['ZeroDayAnomaly', 'Zero-Day Anomaly', 'Tests Isolation Forest Stage 3'],
 ]
 
-export default function FloatingHeader({ status, isStreaming, activeView, setActiveView, blockedCount, onToggle, sourceMode = 'simulated' }) {
+export default function FloatingHeader({ status, isStreaming, activeView, setActiveView, blockedCount, onToggle, sourceMode = 'simulated', isPollingLive = false }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [attackOpen, setAttackOpen] = useState(false)
   const [feedback, setFeedback] = useState('')
   const attackRef = useRef(null)
   const connected = status === 'Connected'
+  const liveLabel = isPollingLive
+    ? (import.meta.env.PROD ? 'LIVE · CLOUD' : `LIVE · ${sourceMode === 'live' ? 'NIC' : 'SIM'}`)
+    : `LIVE · ${sourceMode === 'live' ? 'NIC' : 'SIM'}`
   useEffect(() => {
     const close = (event) => { if (attackRef.current && !attackRef.current.contains(event.target)) setAttackOpen(false) }
     document.addEventListener('mousedown', close)
@@ -41,7 +44,7 @@ export default function FloatingHeader({ status, isStreaming, activeView, setAct
         <div><div className="text-xs font-semibold md:text-sm">{activeView}</div><div className="hidden text-[9px] text-[#86868B] md:block">Hybrid detection console</div></div>
       </div>
       <div className="flex items-center gap-2">
-        <span className="mono hidden items-center gap-2 text-xs text-zinc-300 sm:flex"><span className={`h-[6px] w-[6px] rounded-full ${connected ? 'animate-pulse bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'animate-pulse bg-amber-400'}`} />{connected ? `LIVE · ${sourceMode === 'live' ? 'NIC' : 'SIM'}` : status}</span>
+        <span className="mono hidden items-center gap-2 text-xs text-zinc-300 sm:flex"><span className={`h-[6px] w-[6px] rounded-full ${connected || isPollingLive ? 'animate-pulse bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'animate-pulse bg-amber-400'}`} />{connected || isPollingLive ? liveLabel : status}</span>
         <div ref={attackRef} className="relative hidden sm:block" onMouseEnter={() => setAttackOpen(true)} onMouseLeave={() => setAttackOpen(false)}>
           <button type="button" onClick={() => setAttackOpen(!attackOpen)} className="flex h-9 items-center gap-2 rounded-full border border-white/12 bg-white/[0.07] px-3 text-[11px] text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,.12)] hover:bg-white/[0.12]"><Radar size={13} />Simulate<ChevronDown size={12} className={`transition-transform duration-200 ${attackOpen ? 'rotate-180' : ''}`} /></button>
           {attackOpen && <div className="liquid-glass absolute right-0 top-11 w-72 rounded-2xl p-2 shadow-2xl">
