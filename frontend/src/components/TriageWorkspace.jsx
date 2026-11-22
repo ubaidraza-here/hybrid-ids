@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Ban, Download, Search, X } from 'lucide-react'
+import useBodyScrollLock from '../hooks/useBodyScrollLock'
 
 const filters = [['ALL','All'],['THREAT','Threats'],['STAGE_1_SIGNATURE','Stage 1'],['STAGE_2_SUPERVISED_ML','Stage 2'],['STAGE_3_ANOMALY_AI','Stage 3']]
 
@@ -84,6 +85,7 @@ function stageStyleFor(stage) {
 }
 
 function Inspector({ alert, blocked, onClose, onBlock }) {
+  useBodyScrollLock(Boolean(alert))
   useEffect(() => {
     const closeOnEscape = (event) => { if (event.key === 'Escape') onClose() }
     window.addEventListener('keydown', closeOnEscape)
@@ -96,7 +98,7 @@ function Inspector({ alert, blocked, onClose, onBlock }) {
   ]
   return <>
     <button type="button" aria-label="Close inspector" onClick={onClose} className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm" />
-    <aside className="liquid-glass fixed inset-x-0 bottom-0 z-50 max-h-[82vh] overflow-y-auto rounded-t-3xl p-5 md:inset-y-3 md:left-auto md:right-3 md:w-[440px] md:max-h-none md:rounded-l-3xl md:rounded-r-3xl">
+    <aside className="liquid-glass fixed inset-x-0 bottom-0 z-50 max-h-[82vh] overflow-y-auto overscroll-contain touch-pan-y rounded-t-3xl p-5 md:inset-y-3 md:left-auto md:right-3 md:w-[440px] md:max-h-none md:rounded-l-3xl md:rounded-r-3xl">
       <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20 md:hidden" />
       <header className="flex items-center justify-between"><div><div className="text-sm font-semibold">Flow Inspector</div><div className="mono mt-1 text-[9px] text-[#86868B]">{alert.id}</div></div><button type="button" onClick={onClose} aria-label="Close inspector"><X size={18} /></button></header>
       <section className="mt-5"><div className="flex items-center justify-between"><span className={`rounded-full px-2.5 py-1 text-[9px] ring-1 ${stageStyleFor(alert.detection_stage)}`}>{alert.severity}</span><span className="text-sm font-semibold">{alert.threat_label}</span></div>

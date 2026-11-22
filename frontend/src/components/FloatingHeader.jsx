@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Menu, Pause, Play, Radar, Shield, X, Zap } from 'lucide-react'
+import useBodyScrollLock from '../hooks/useBodyScrollLock'
 
 const API_BASE = import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD ? '' : 'http://localhost:8000')
@@ -18,6 +19,7 @@ export default function FloatingHeader({ status, isStreaming, activeView, setAct
   const [attackOpen, setAttackOpen] = useState(false)
   const [feedback, setFeedback] = useState('')
   const attackRef = useRef(null)
+  useBodyScrollLock(menuOpen)
   const connected = status === 'Connected'
   const liveLabel = isPollingLive
     ? (import.meta.env.PROD ? 'LIVE · CLOUD' : `LIVE · ${sourceMode === 'live' ? 'NIC' : 'SIM'}`)
@@ -59,7 +61,7 @@ export default function FloatingHeader({ status, isStreaming, activeView, setAct
         </button>
       </div>
     </header>
-    {menuOpen && <div className="fixed inset-0 z-[100] flex h-screen w-screen flex-col bg-[#05060A]/95 p-5 backdrop-blur-2xl md:hidden">
+    {menuOpen && <div className="fixed inset-0 z-[100] flex h-screen w-screen flex-col overflow-y-auto overscroll-contain touch-pan-y bg-[#05060A]/95 p-5 backdrop-blur-2xl md:hidden">
       <div className="liquid-glass-pill flex h-14 items-center justify-between px-4"><div className="flex items-center gap-2"><Shield size={16} className="text-cyan-300" /><span className="text-sm font-bold">Hybrid-IDS</span></div><button type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={20} /></button></div>
       <nav className="mt-6 space-y-3">{views.map((view) => <button key={view} type="button" onClick={() => selectView(view)}
         className={`liquid-glass flex h-16 w-full items-center justify-between rounded-2xl px-5 text-left ${activeView === view ? 'text-cyan-200' : 'text-[#F5F5F7]'}`}><span className="text-lg font-semibold">{view}</span>{view === 'Firewall Blocklist' && <span className="mono text-xs text-rose-300">{blockedCount}</span>}</button>)}</nav>
