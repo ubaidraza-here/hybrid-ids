@@ -16,8 +16,8 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       return (
-        <main className="grid min-h-screen place-items-center bg-[#09090B] p-6 text-[#FAFAFA]">
-          <section className="w-full max-w-md rounded-lg border border-white/10 bg-[#111114] p-6">
+        <main className="grid min-h-screen place-items-center bg-[var(--canvas)] p-6 text-[var(--primary)]">
+          <section className="liquid-glass w-full max-w-md rounded-3xl p-6">
             <div className="text-sm font-semibold">Hybrid-IDS paused safely</div>
             <p className="mt-2 text-xs leading-5 text-[#A1A1AA]">
               An unexpected render error was caught. Reload the workspace to reconnect.

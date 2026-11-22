@@ -32,9 +32,20 @@ export default function App() {
   const blockedRef = useRef([])
   const [pollingFallback, setPollingFallback] = useState(false)
   const [isPollingLive, setIsPollingLive] = useState(false)
+  const [theme, setTheme] = useState(() => {
+    const saved = window.localStorage.getItem('theme')
+    return saved === 'light' ? 'light' : 'dark'
+  })
 
   useEffect(() => {
-    const bootTimer = window.setTimeout(() => setBooting(false), 650)
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    window.localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme((current) => current === 'dark' ? 'light' : 'dark')
+
+  useEffect(() => {
+    const bootTimer = window.setTimeout(() => setBooting(false), 400)
     fetch(`${API}/api/source`).then(async (response) => {
       if (!response.ok) throw new Error(`Source request failed: ${response.status}`)
       const data = await response.json()
@@ -212,20 +223,23 @@ export default function App() {
     setSelectedAlert((current) => current?.src_ip === ip ? { ...current, blocked: false } : current)
   }
 
-  if (booting) return <main className="grid min-h-screen place-items-center bg-[#05060A]">
-    <div className="w-[min(420px,calc(100vw-48px))] text-center">
-      <div className="mono mb-5 text-xs text-[#86868B]">Hybrid-IDS // Initializing Engines...</div>
-      <div className="h-px origin-left animate-[boot_650ms_ease-out] bg-gradient-to-r from-cyan-400 to-emerald-500" />
-    </div></main>
+  if (booting) return <main className="grid min-h-screen place-items-center bg-[var(--canvas)]">
+    <svg className="h-8 w-8 animate-spin text-zinc-500 dark:text-zinc-300" viewBox="0 0 32 32" aria-label="Loading">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeOpacity=".15" strokeWidth="2" />
+      <path d="M16 4a12 12 0 0 1 11.2 7.7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  </main>
 
-  return <main className="ambient-noise min-h-screen overflow-x-hidden text-[#F5F5F7]">
+  return <main className="min-h-screen overflow-x-hidden text-[var(--primary)]">
     <Sidebar activeView={activeView} setActiveView={setActiveView} blockedCount={blockedIps.length}
-      collapsed={isSidebarCollapsed} setCollapsed={setIsSidebarCollapsed} />
+      collapsed={isSidebarCollapsed} setCollapsed={setIsSidebarCollapsed}
+      theme={theme} toggleTheme={toggleTheme} />
     <div className={`min-w-0 transition-[padding] duration-300 ease-out ${isSidebarCollapsed ? 'md:pl-[78px]' : 'md:pl-64'}`}>
       <div className="sticky top-0 z-40 px-3 pt-3 md:px-6 md:pt-4">
         <FloatingHeader status={socketStatus} isStreaming={isStreaming} activeView={activeView}
           setActiveView={setActiveView} blockedCount={blockedIps.length} onToggle={toggleStream}
-          sourceMode={sourceMode} isPollingLive={isPollingLive} />
+          sourceMode={sourceMode} isPollingLive={isPollingLive}
+          theme={theme} toggleTheme={toggleTheme} />
       </div>
       <div className="mx-auto max-w-[1240px] px-4 pb-10 md:px-6">
         {activeView === 'Live Triage' && <>
