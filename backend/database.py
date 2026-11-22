@@ -1,10 +1,15 @@
 """Lightweight SQLite persistence for Hybrid-IDS state."""
 
 import sqlite3
+import os
 from pathlib import Path
 
 
-DB_PATH = Path(__file__).resolve().parent / "data" / "ids_state.db"
+DB_PATH = (
+    Path("/tmp/ids_state.db")
+    if os.environ.get("VERCEL")
+    else Path(__file__).resolve().parent / "data" / "ids_state.db"
+)
 
 
 def _connect() -> sqlite3.Connection:

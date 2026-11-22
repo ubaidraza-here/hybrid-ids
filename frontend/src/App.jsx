@@ -6,8 +6,12 @@ import TriageWorkspace from './components/TriageWorkspace'
 import PipelineView from './components/PipelineView'
 import BlocklistView from './components/BlocklistView'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '' : 'http://localhost:8000')
+const WS_BASE = import.meta.env.VITE_WS_URL ||
+  (import.meta.env.PROD
+    ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
+    : 'ws://localhost:8000')
 const API = API_BASE
 const emptyStats = { total_flows: 0, benign_count: 0, threat_counts: {} }
 
@@ -26,6 +30,7 @@ export default function App() {
   const [sourceMode, setSourceMode] = useState('simulated')
   const socketRef = useRef(null)
   const blockedRef = useRef([])
+  const [pollingFallback, setPollingFallback] = useState(false)
 
   useEffect(() => {
     const bootTimer = window.setTimeout(() => setBooting(false), 650)
@@ -59,6 +64,54 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    const sameOriginProduction = import.meta.env.PROD &&
+      !import.meta.env.VITE_API_URL
+    if (!sameOriginProduction && !pollingFallback) return undefined
+    if (!isStreaming) return undefined
+    let stopped = false
+    const poll = async () => {
+      try {
+        const response = await fetch(`${API}/api/tick`)
+        if (!response.ok) throw new Error(`Tick request failed: ${response.status}`)
+        const data = await response.json()
+        setIsStreaming(data?.is_streaming !== false)
+        const incoming = Array.isArray(data?.alerts) ? data.alerts : []
+        incoming.forEach((alert) => {
+          const normalized = {
+            ...alert,
+            id: alert?.id ?? crypto.randomUUID?.() ?? String(Date.now()),
+            timestamp: alert?.timestamp ?? new Date().toISOString(),
+            confidence: Number(alert?.confidence ?? 0),
+          }
+          setAlerts((current) => [normalized, ...(Array.isArray(current) ? current : [])].slice(0, 200))
+          setSamples((current) => [...current.slice(-39),
+            normalized.threat_label === 'BENIGN' ? 18 : 82])
+        })
+        if (data?.stats && typeof data.stats === 'object') setStats({
+          total_flows: Number(data.stats.total_flows || 0),
+          benign_count: Number(data.stats.benign_count || 0),
+          threat_counts: data.stats.threat_counts || {},
+        })
+        if (Array.isArray(data?.blocked_ips)) {
+          blockedRef.current = data.blocked_ips
+          setBlockedIps(data.blocked_ips)
+        }
+        setLoading(false)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    poll()
+    const intervalId = window.setInterval(() => {
+      if (!stopped) poll()
+    }, 1500)
+    return () => {
+      stopped = true
+      window.clearInterval(intervalId)
+    }
+  }, [isStreaming, pollingFallback])
+
+  useEffect(() => {
     let stopped = false
     let reconnectId
     const connect = () => {
@@ -66,12 +119,19 @@ export default function App() {
       try {
         const socket = new WebSocket(`${WS_BASE}/ws/alerts`)
         socketRef.current = socket
-        socket.onopen = () => setSocketStatus('Connected')
+        socket.onopen = () => {
+          setSocketStatus('Connected')
+          if (!import.meta.env.PROD) setPollingFallback(false)
+        }
         socket.onclose = () => {
           setSocketStatus('Reconnecting')
+          setPollingFallback(true)
           if (!stopped) reconnectId = window.setTimeout(connect, 2500)
         }
-        socket.onerror = () => socket.close()
+        socket.onerror = () => {
+          setPollingFallback(true)
+          socket.close()
+        }
         socket.onmessage = (event) => {
           try {
             const alert = JSON.parse(event.data)

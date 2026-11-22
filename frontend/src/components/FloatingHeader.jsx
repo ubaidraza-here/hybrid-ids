@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, Menu, Pause, Play, Radar, Shield, X, Zap } from 'lucide-react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '' : 'http://localhost:8000')
 
 const views = ['Live Triage', 'Pipeline & Models', 'Firewall Blocklist']
 const attacks = [

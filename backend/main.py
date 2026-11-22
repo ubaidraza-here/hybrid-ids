@@ -49,15 +49,18 @@ async def broadcast_alert(alert: dict) -> None:
 
 traffic = TrafficEngine(detector, broadcast_alert)
 source_mode = "simulated"
+is_streaming = True
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage the background traffic stream with application lifecycle."""
     initialize_database()
-    await traffic.start_stream()
+    if not os.environ.get("VERCEL"):
+        await traffic.start_stream()
     yield
-    await traffic.stop_stream()
+    if not os.environ.get("VERCEL"):
+        await traffic.stop_stream()
 
 
 app = FastAPI(title="Hybrid-IDS", version="1.0.0", lifespan=lifespan)
@@ -129,13 +132,55 @@ async def simulate(attack_type: str) -> dict[str, Any]:
 @app.post("/api/stream/{action}")
 async def stream_action(action: str) -> dict[str, str]:
     """Start or stop automatic background telemetry."""
+    global is_streaming
     if action == "start":
+        is_streaming = True
         await traffic.start_stream()
     elif action == "stop":
+        is_streaming = False
         await traffic.stop_stream()
     else:
         return {"status": "error", "detail": "action must be start or stop"}
     return {"status": "ok", "stream": action}
+
+
+@app.get("/api/tick")
+async def tick() -> dict[str, Any]:
+    """Generate one stateless telemetry flow for serverless deployments."""
+    alerts: list[dict[str, Any]] = []
+    if is_streaming:
+        if traffic.capture_live:
+            alerts.append(await traffic._analyze(traffic._benign_flow()))
+        else:
+            import random
+
+            if random.random() < 0.18:
+                attack_type = random.choice(
+                    ["DDoS", "PortScan", "BruteForce", "SuspiciousPort"]
+                )
+                generators = {
+                    "DDoS": traffic._ddos_flow,
+                    "PortScan": traffic._portscan_flow,
+                    "BruteForce": traffic._bruteforce_flow,
+                    "SuspiciousPort": traffic._suspicious_port_flow,
+                }
+                flow_data, features = generators[attack_type]()
+                alerts.append(await traffic._analyze(flow_data, features))
+            else:
+                alerts.append(await traffic._analyze(traffic._benign_flow()))
+
+    blocked = list_blocked_ips()
+    blocked_ips = {entry["ip"] for entry in blocked}
+    tagged = [
+        {**alert, "blocked": alert.get("src_ip") in blocked_ips}
+        for alert in alerts
+    ]
+    return {
+        "stats": stats_payload(),
+        "alerts": tagged,
+        "blocked_ips": blocked,
+        "is_streaming": is_streaming,
+    }
 
 
 @app.get("/api/source")
