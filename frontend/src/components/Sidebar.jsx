@@ -20,11 +20,16 @@ export default function Sidebar({ activeView, setActiveView, blockedCount, colla
       <nav className="flex-1 space-y-2 p-3">
         {views.map(([label, Icon]) => (
           <button key={label} type="button" onClick={() => setActiveView(label)} title={collapsed ? label : undefined}
-            className={`group relative flex h-12 w-full items-center rounded-xl text-sm transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${collapsed ? 'justify-center' : 'gap-3 px-3'} ${activeView === label ? 'bg-zinc-900 text-white shadow-sm dark:bg-white/[0.10] dark:text-white' : 'text-zinc-600 hover:bg-black/[0.04] hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.05] dark:hover:text-white'}`}>
+            style={activeView === label ? {
+              backgroundColor: "var(--text-primary)",
+              color: "var(--bg-canvas)",
+              borderColor: "var(--text-primary)",
+            } : { backgroundColor: "var(--bg-surface)", color: "var(--text-secondary)", borderColor: "transparent" }}
+            className={`group relative flex h-12 w-full items-center rounded-xl border text-sm transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${collapsed ? 'justify-center' : 'gap-3 px-3'} hover:opacity-90`}>
             <Icon size={17} className="shrink-0" />
             {!collapsed && <span className="font-medium">{label}</span>}
             {label === 'Firewall Blocklist' && <span className={`mono rounded-full bg-rose-500/10 px-2 py-0.5 text-[9px] text-rose-300 ring-1 ring-rose-400/20 ${collapsed ? 'absolute right-1 top-1' : 'ml-auto'}`}>{blockedCount}</span>}
-            {collapsed && <span className="liquid-glass pointer-events-none absolute left-[66px] z-50 whitespace-nowrap rounded-xl px-3 py-2 text-xs text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">{label}</span>}
+            {collapsed && <span className="liquid-glass pointer-events-none absolute left-[66px] z-50 whitespace-nowrap rounded-xl px-3 py-2 text-xs opacity-0 shadow-xl transition-opacity group-hover:opacity-100" style={{ color: "var(--text-primary)", backgroundColor: "var(--bg-surface)" }}>{label}</span>}
           </button>
         ))}
       </nav>

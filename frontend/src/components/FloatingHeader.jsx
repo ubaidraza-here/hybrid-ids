@@ -97,6 +97,10 @@ export default function FloatingHeader({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <span className="mono flex items-center gap-1.5 text-[10px] text-zinc-900 dark:text-zinc-100 sm:hidden">
+            <span className={`h-[6px] w-[6px] rounded-full ${connected || isPollingLive ? "animate-pulse bg-emerald-400 shadow-[0_0_8px_#34d399]" : "animate-pulse bg-amber-400"}`} />
+            LIVE
+          </span>
           <span className="mono hidden items-center gap-2 text-xs text-zinc-900 dark:text-zinc-100 sm:flex">
             <span
               className={`h-[6px] w-[6px] rounded-full ${connected || isPollingLive ? "animate-pulse bg-emerald-400 shadow-[0_0_8px_#34d399]" : "animate-pulse bg-amber-400"}`}
@@ -180,13 +184,25 @@ export default function FloatingHeader({
               <X size={20} />
             </button>
           </div>
-          <nav className="mt-6 space-y-3">
+          <nav className="mt-5 space-y-2.5">
             {views.map((view) => (
+              (() => {
+                const isActive = activeView === view
+                return (
               <button
                 key={view}
                 type="button"
                 onClick={() => selectView(view)}
-                className={`liquid-glass flex h-16 w-full items-center justify-between rounded-2xl px-5 text-left ${activeView === view ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950" : "text-[var(--primary)]"}`}
+                style={isActive ? {
+                  backgroundColor: "var(--text-primary)",
+                  color: "var(--bg-canvas)",
+                  borderColor: "var(--text-primary)",
+                } : {
+                  backgroundColor: "var(--bg-surface)",
+                  color: "var(--text-primary)",
+                  borderColor: "var(--border)",
+                }}
+                className="liquid-glass flex h-14 w-full items-center justify-between rounded-2xl border px-5 text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
               >
                 <span className="text-lg font-semibold">{view}</span>
                 {view === "Firewall Blocklist" && (
@@ -195,51 +211,49 @@ export default function FloatingHeader({
                   </span>
                 )}
               </button>
+                )
+              })()
             ))}
           </nav>
-          <div className="mt-auto">
-            <div className="mb-3 grid grid-cols-2 gap-2">
+          <div className="mt-auto border-t border-[var(--border)] pt-4">
+            <div className="mb-2">
+              <div className="mb-2 text-[9px] font-medium tracking-[0.16em] text-[var(--text-secondary)]">SIMULATE VECTOR</div>
+              <div className="grid grid-cols-2 gap-2">
+                {attacks.map(([type, label]) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
+                      simulate(type, label)
+                      setMenuOpen(false)
+                    }}
+                    className={`liquid-glass flex h-10 items-center justify-center rounded-xl px-2 text-[10px] text-[var(--text-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${type === "ZeroDayAnomaly" ? "col-span-2" : ""}`}
+                  >
+                    <Zap size={12} className="mr-1.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 border-t border-[var(--border)] pt-3">
+              <div className="mb-2 text-[9px] font-medium tracking-[0.16em] text-[var(--text-secondary)]">CONSOLE UTILITIES</div>
               <button
                 type="button"
-                onClick={toggleTheme}
-                className="liquid-glass flex h-11 items-center justify-center gap-2 rounded-2xl text-xs"
+                onClick={() => onToggle(isStreaming ? "stop" : "start")}
+                className="liquid-glass-pill mb-2 flex h-11 w-full items-center justify-center gap-2 text-sm text-[var(--text-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
               >
-                {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                {isStreaming ? <Pause size={16} /> : <Play size={16} />}
+                {isStreaming ? "Pause Stream" : "Resume Stream"}
               </button>
-              <a
-                href="https://github.com/ubaidraza-here/hybrid-ids"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="liquid-glass flex h-11 items-center justify-center gap-2 rounded-2xl text-xs"
-              >
-                <Code2 size={15} />
-                Source Code
-              </a>
-            </div>
-            <button
-              type="button"
-              onClick={() => onToggle(isStreaming ? "stop" : "start")}
-              className="liquid-glass-pill mb-3 flex h-12 w-full items-center justify-center gap-2 text-sm"
-            >
-              {isStreaming ? <Pause size={16} /> : <Play size={16} />}Stream{" "}
-              {isStreaming ? "Active" : "Paused"}
-            </button>
-            <div className="grid grid-cols-2 gap-2">
-              {attacks.map(([type, label]) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-                    simulate(type, label);
-                    setMenuOpen(false);
-                  }}
-                  className="liquid-glass flex h-11 items-center justify-center gap-2 rounded-2xl px-2 text-[9px]"
-                >
-                  <Zap size={12} />
-                  {type}
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={toggleTheme} className="liquid-glass flex h-10 items-center justify-center gap-2 rounded-xl text-xs text-[var(--text-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400">
+                  {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+                  {theme === "dark" ? "Light Mode" : "Dark Mode"}
                 </button>
-              ))}
+                <a href="https://github.com/ubaidraza-here/hybrid-ids" target="_blank" rel="noopener noreferrer" className="liquid-glass flex h-10 items-center justify-center gap-2 rounded-xl text-xs text-[var(--text-primary)]">
+                  <Code2 size={15} />Source Code
+                </a>
+              </div>
             </div>
           </div>
         </div>

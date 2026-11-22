@@ -248,7 +248,7 @@ export default function App() {
             setSelectedAlert={setSelectedAlert} onBlock={blockSource} loading={loading} />
         </>}
         {activeView === 'Pipeline & Models' && <PipelineView stats={stats} />}
-        {activeView === 'Firewall Blocklist' && <BlocklistView blockedIps={blockedIps} onUnblock={unblockSource} />}
+        {activeView === 'Firewall Blocklist' && <BlocklistView blockedIps={blockedIps} onUnblock={unblockSource} onBlock={blockSource} />}
       </div>
     </div>
   </main>

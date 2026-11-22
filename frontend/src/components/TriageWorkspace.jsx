@@ -42,9 +42,10 @@ export default function TriageWorkspace({ alerts, blockedIps, selectedAlert, set
           } : undefined}
           className={`liquid-glass-pill h-9 shrink-0 border px-3 text-[10px] font-medium focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 ${activeFilter !== value ? 'bg-transparent text-zinc-600 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:border-zinc-800 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/60' : ''}`}>{label}</button>)}</div>
       <div className="flex items-center gap-2">
-        <label className="liquid-glass-pill flex h-10 min-w-0 flex-1 items-center gap-2 px-4 md:w-64"><Search size={14} className="text-zinc-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search IP, port, label" className="mono min-w-0 w-full bg-transparent text-[10px] outline-none placeholder:text-zinc-400" /></label>
+        <label className="liquid-glass-pill flex h-10 min-w-0 flex-1 items-center gap-2 px-4 md:w-64" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}><Search size={14} style={{ color: "var(--text-secondary)" }} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search IP, port, label" className="mono min-w-0 w-full bg-transparent text-[10px] outline-none" style={{ color: "var(--text-primary)" }} /></label>
         <button type="button" onClick={exportCsv} disabled={visible.length === 0}
-          className="liquid-glass-pill flex h-10 shrink-0 items-center gap-2 px-3 text-[10px] text-zinc-700 disabled:opacity-40 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 dark:text-zinc-200"><Download size={13} />Export CSV</button>
+          className="liquid-glass-pill flex h-10 shrink-0 items-center gap-2 px-3 text-[10px] disabled:opacity-40 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+          style={{ color: "var(--text-primary)", backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}><Download size={13} />Export CSV</button>
       </div>
     </div>
     <div className="hidden md:block"><div className="liquid-glass overflow-hidden rounded-3xl">
@@ -117,16 +118,20 @@ function Inspector({ alert, blocked, onClose, onBlock }) {
   ]
   return <>
     <button type="button" aria-label="Close inspector" onClick={onClose} className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm" />
-    <aside className="liquid-glass fixed inset-x-0 bottom-0 z-50 max-h-[82vh] overflow-y-auto overscroll-contain touch-pan-y rounded-t-3xl p-5 md:inset-y-3 md:left-auto md:right-3 md:w-[440px] md:max-h-none md:rounded-l-3xl md:rounded-r-3xl">
+    <aside className="liquid-glass fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto overscroll-contain touch-pan-y rounded-t-3xl p-5 pb-0 md:inset-y-3 md:left-auto md:right-3 md:w-[440px] md:max-h-none md:rounded-l-3xl md:rounded-r-3xl">
       <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20 md:hidden" />
       <header className="flex items-center justify-between"><div><div className="text-sm font-semibold">Flow Inspector</div><div className="mono mt-1 text-[9px] text-zinc-500 dark:text-zinc-400">{alert.id}</div></div><button type="button" onClick={onClose} aria-label="Close inspector"><X size={18} /></button></header>
       <section className="mt-5"><div className="flex items-center justify-between"><span className={severityClass(alert.severity)}>{severityLabel(alert.severity)}</span><DetectionLabel stage={alert.detection_stage} /></div>
-        <div className="mono mt-5 text-sm">{alert.src_ip}<span className="mx-2 text-[#626268]">→</span>{alert.dst_ip}:{alert.dst_port}</div>
-        <button type="button" onClick={() => onBlock(alert.src_ip, alert.explanation || 'Manually blocked from Flow Inspector')} disabled={blocked}
-          className="liquid-glass-pill mt-4 flex h-11 w-full items-center justify-center gap-2 text-[11px] text-rose-300 disabled:opacity-50"><Ban size={14} />{blocked ? 'Source IP blocked' : 'Block Source IP'}</button></section>
+        <div className="mono mt-5 text-sm" style={{ color: "var(--text-primary)" }}>{alert.src_ip}<span className="mx-2" style={{ color: "var(--text-secondary)" }}>→</span>{alert.dst_ip}:{alert.dst_port}</div>
+        </section>
       <section className="mt-5 border-t border-[var(--border)] pt-4"><div className="mb-2 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">3-Stage Pipeline Trace</div>
         {stages.map(([label, stage]) => { const triggered = alert.detection_stage === stage; return <div key={stage} className="flex h-11 items-center border-b border-[var(--border)] text-[11px]"><span className="flex-1">{label}</span><span className={triggered ? 'text-amber-600 dark:text-amber-300' : 'text-zinc-500 dark:text-zinc-400'}>{triggered ? 'Triggered' : 'Passed'}</span></div> })}
       </section><section className="mt-5"><div className="mb-2 text-[10px] text-zinc-500 dark:text-zinc-400">Feature explanation</div><p className="mono rounded-2xl border border-[var(--border)] bg-zinc-100/70 p-3 text-[10px] leading-5 text-zinc-600 dark:bg-black/15 dark:text-zinc-300">{alert.explanation}</p></section>
+      <div className="sticky bottom-0 -mx-5 mt-5 border-t border-[var(--border)] px-5 py-3" style={{ backgroundColor: "var(--bg-surface)" }}>
+        <button type="button" onClick={() => onBlock(alert.src_ip, alert.explanation || 'Manually blocked from Flow Inspector')} disabled={blocked}
+          className="liquid-glass-pill flex h-11 w-full items-center justify-center gap-2 text-[11px] text-rose-600 disabled:opacity-50 dark:text-rose-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"><Ban size={14} />{blocked ? 'Source IP blocked' : 'Block Source IP'}</button>
+        <button type="button" onClick={onClose} className="mt-2 h-9 w-full text-xs text-[var(--text-secondary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400">Close Inspector</button>
+      </div>
     </aside>
   </>
 }

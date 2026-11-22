@@ -5,6 +5,8 @@
   font-family: "Plus Jakarta Sans", sans-serif;
   --bg-canvas: #fafafa;
   --text-primary: #09090b;
+  --bg-surface: #ffffff;
+  --text-secondary: #52525b;
   --canvas: #FAFAFA;
   --surface: #FFFFFF;
   --primary: #09090B;
@@ -22,6 +24,8 @@
 html.dark {
   --bg-canvas: #09090b;
   --text-primary: #f4f4f5;
+  --bg-surface: #111114;
+  --text-secondary: #a1a1aa;
   --canvas: #09090B;
   --surface: #111114;
   --primary: #F4F4F5;
