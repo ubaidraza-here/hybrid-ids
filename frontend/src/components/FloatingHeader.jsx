@@ -169,8 +169,8 @@ export default function FloatingHeader({
         </div>
       </header>
       {menuOpen && (
-        <div className="fixed inset-0 z-[100] flex h-screen w-screen flex-col overflow-y-auto overscroll-contain touch-pan-y bg-[var(--canvas)]/95 p-5 backdrop-blur-2xl md:hidden">
-          <div className="liquid-glass-pill flex h-14 items-center justify-between px-4">
+        <div className="fixed inset-0 z-[100] flex h-[100dvh] w-screen flex-col overflow-hidden bg-[var(--canvas)]/95 backdrop-blur-2xl md:hidden">
+          <div className="liquid-glass-pill mx-5 mt-5 flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] px-4">
             <div className="flex items-center gap-2">
               <Shield size={16} />
               <span className="text-sm font-bold">Hybrid-IDS</span>
@@ -184,6 +184,7 @@ export default function FloatingHeader({
               <X size={20} />
             </button>
           </div>
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pb-8 px-5">
           <nav className="mt-5 space-y-2.5">
             {views.map((view) => (
               (() => {
@@ -215,7 +216,7 @@ export default function FloatingHeader({
               })()
             ))}
           </nav>
-          <div className="mt-auto border-t border-[var(--border)] pt-4">
+          <div className="mt-5 border-t border-[var(--border)] pt-4">
             <div className="mb-2">
               <div className="mb-2 text-[9px] font-medium tracking-[0.16em] text-[var(--text-secondary)]">SIMULATE VECTOR</div>
               <div className="grid grid-cols-2 gap-2">
@@ -254,6 +255,7 @@ export default function FloatingHeader({
                   <Code2 size={15} />Source Code
                 </a>
               </div>
+            </div>
             </div>
           </div>
         </div>

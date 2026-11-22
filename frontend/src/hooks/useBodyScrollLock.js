@@ -12,10 +12,12 @@ export default function useBodyScrollLock(isLocked) {
         bodyOverflow: document.body.style.overflow,
         htmlOverflow: document.documentElement.style.overflow,
         touchAction: document.body.style.touchAction,
+        htmlTouchAction: document.documentElement.style.touchAction,
       }
       document.body.style.overflow = 'hidden'
       document.documentElement.style.overflow = 'hidden'
-      document.body.style.touchAction = 'none'
+      document.body.style.touchAction = 'auto'
+      document.documentElement.style.touchAction = 'auto'
     }
     lockCount += 1
 
@@ -25,6 +27,7 @@ export default function useBodyScrollLock(isLocked) {
         document.body.style.overflow = previousStyles.bodyOverflow
         document.documentElement.style.overflow = previousStyles.htmlOverflow
         document.body.style.touchAction = previousStyles.touchAction
+        document.documentElement.style.touchAction = previousStyles.htmlTouchAction
         previousStyles = null
       }
     }
